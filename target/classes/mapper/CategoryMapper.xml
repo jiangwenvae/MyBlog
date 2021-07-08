@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zl.dao.CategoryMapper">
+
+    <select id="getAllCategory" resultType="com.zl.bean.Category">
+        select * from t_category
+    </select>
+
+      <select id="getCategoryById" parameterType="int" resultType="com.zl.bean.Category">
+          select * from t_category where id = #{id}
+      </select>
+</mapper>

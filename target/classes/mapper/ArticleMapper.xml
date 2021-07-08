@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zl.dao.ArticleMapper">
+
+    <resultMap id="articleMap" type="com.zl.bean.Article">
+
+        <result column="id" property="id"/>
+        <result column="categoryId" property="categoryId"/>
+        <result column="title" property="title"/>
+        <result column="description" property="description"/>
+        <result column="statue" property="statue"/>
+        <result column="author" property="author"/>
+        <result column="createTime" property="createTime"/>
+        <result column="showCount" property="showCount"/>
+        <result column="categoryName" property="categoryName"/>
+        <result column="content" property="content" typeHandler="com.zl.util.ConvertBlobTypeHandler"/>
+    </resultMap>
+
+    <insert id="addArticle" parameterType="com.zl.bean.Article" >
+        insert into t_article (categoryId, title, content, description,statue,author, createTime)
+        values (#{categoryId},#{title},#{content},#{description},#{statue},#{author},#{createTime})
+    </insert>
+
+    <select id="getArticleById" parameterType="int" resultMap="articleMap">
+        select a.*,c.categoryName   from t_article a,t_category c where a.categoryId=c.id and a.id= #{id}
+    </select>
+
+    <select id="getAllArticle" resultMap="articleMap">
+         select a.*,c.categoryName  from t_article a,t_category c where a.categoryId=c.id and a.statue!=1 order by a.createTime desc
+    </select>
+
+    <select id="getAllArticleByCategoryId" resultMap="articleMap">
+         select a.*,c.categoryName  from t_article a,t_category c where a.categoryId=c.id and c.id= #{categoryId}
+    </select>
+
+    <update id="updateCount"  >
+        update t_article set showCount = #{count} where  id= #{articleId}
+    </update>
+
+    <!--mybatis中的动态sql-->
+    <select id="selectCountByArticle" parameterType="map" resultType="int">
+        select count(*)
+        from t_article ta
+        join t_category tc
+        on  ta.categoryId = tc.id
+        <where>
+            <if test="article.title != null">
+                and ta.title like concat('%', #{article.title}, '%')
+            </if>
+            <if test="article.categoryId != null and article.categoryId != 0">
+                and ta.categoryId = #{article.categoryId}
+            </if>
+            <if test="article.tagId != null and article.tagId != 0">
+                and exists (select 1 from t_article_tag tt where tt.articleId = ta.id and tt.tagId = #{article.tagId})
+            </if>
+        </where>
+    </select>
+
+    <select id="selectArticleByPager" parameterType="map" resultMap="articleMap">
+        select ta.id,ta.categoryId,tc.categoryName,ta.title,ta.content,ta.author,ta.createTime,DATE_FORMAT(ta.createTime,'%Y-%m-%d %H:%i:%s') as time,
+        ta.showCount,ta.statue
+        from t_article ta
+        join t_category tc
+        on  ta.categoryId = tc.id
+        <where>
+            <if test="article.title != null">
+                and ta.title like concat('%', #{article.title}, '%')
+            </if>
+            <if test="article.categoryId != null and article.categoryId != 0">
+                and ta.categoryId = #{article.categoryId}
+            </if>
+            <if test="article.tagId != null and article.tagId != 0">
+                and exists (select 1 from t_article_tag tt where tt.articleId = ta.id and tt.tagId = #{article.tagId})
+            </if>
+
+        </where>
+
+        order by ta.createTime desc
+        limit #{start},#{limit}
+
+    </select>
+
+    <update id="updateStatue" parameterType="com.zl.bean.Article">
+        update t_article set statue = #{statue} where id = #{id}
+    </update>
+</mapper>
